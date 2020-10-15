@@ -1,2 +1,2 @@
 # System stats wallpaper
-https://www.youtube.com/watch?v=knzcNeLnZ94
+https://youtu.be/B-9g92ixmm0
