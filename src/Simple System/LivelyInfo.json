@@ -1,0 +1,14 @@
+{
+  "AppVersion": "1.1.7.0",
+  "Title": "Simple System",
+  "Thumbnail": "lively_t.jpg",
+  "Preview": "lively_p.gif",
+  "Desc": "Lively hardware API showcase.",
+  "Author": "rocksdanister",
+  "License": "See license.txt",
+  "Contact": "https://github.com/rocksdanister/system-stats-wallpaper",
+  "Type": 1,
+  "FileName": "index.html",
+  "Arguments": "--system-information",
+  "IsAbsolutePath": false
+}
