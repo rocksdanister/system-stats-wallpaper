@@ -6,7 +6,10 @@ Require [Lively Wallpaper](https://github.com/rocksdanister/lively) v1.1.7 or ab
 ## Simple System
 <img src="/src/Simple System/lively_p.gif" width="600" height="338"/>
 
-[DOWNLOAD](https://github.com/rocksdanister/system-stats-wallpaper/releases/download/v1.0/Simple.System.zip)
+[Download](https://github.com/rocksdanister/system-stats-wallpaper/releases/download/v1.0/Simple.System.zip)
+
+Simply Drag'and'Drop the zip file into Lively library.
+
 
 ## Complex System
 <img src="/src/Complex System/lively_p.gif" width="600" height="338"/>

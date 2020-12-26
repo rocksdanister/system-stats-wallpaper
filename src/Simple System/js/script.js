@@ -1,6 +1,3 @@
-
-
-//Lively magic
 var cpuCounter = 0;
 var gpuCounter = 0;
 var netDownCounter = 0;
