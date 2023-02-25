@@ -7,9 +7,9 @@ Colorful Studio
 https://polyhaven.com/a/colorful_studio
 licensed under CC0
 
-Color Thief
-https://github.com/lokesh/color-thief
-MIT license
-
 TODO: Model
 TODO: Font
+MIT license
+
+Icons by icons8
+https://icons8.com
