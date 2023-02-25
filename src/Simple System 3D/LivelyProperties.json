@@ -1,0 +1,39 @@
+{
+  "label1": {
+    "type": "label",
+    "value": "Camera"
+  },
+  "xAngleCamera": {
+    "max": 90,
+    "min": -90,
+    "step": 1,
+    "text": "Vertical",
+    "type": "slider",
+    "value": 0
+  },
+  "yAngleCamera": {
+    "max": 90,
+    "min": -90,
+    "step": 1,
+    "text": "Horizontal",
+    "type": "slider",
+    "value": 0
+  },
+  "zoomCamera": {
+    "max": 10,
+    "min": -10,
+    "step": 0.1,
+    "text": "Zoom",
+    "type": "slider",
+    "value": 0
+  },
+  "label2": {
+    "type": "label",
+    "value": "Performance"
+  },
+  "30fps": {
+    "type": "checkbox",
+    "value": true,
+    "text": "30 Fps cap"
+  }
+}

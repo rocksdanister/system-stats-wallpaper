@@ -32,10 +32,44 @@
         transition: --gradientColor1 3s, --gradientColor2 3s;
         margin: 0;
       }
+
+      #container.fadeIn {
+        opacity: 1;
+      }
+
+      #container {
+        opacity: 0;
+        transition: opacity 1s;
+      }
+
+      #loader {
+        border: 10px solid #f3f3f3;
+        border-top: 10px solid #525252;
+        border-radius: 50%;
+        width: 120px;
+        height: 120px;
+        animation: spin 1s linear infinite;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        margin: auto;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
     </style>
   </head>
 
   <body>
+    <div id="loader"></div>
     <div id="container"></div>
     <!-- Import maps polyfill -->
     <!-- Remove this when import maps will be widely supported -->
@@ -122,7 +156,7 @@
         //orbitalControl.minAzimuthAngle = Math.PI * -0.5;
         //orbitalControl.maxAzimuthAngle = Math.PI * 0.5;
         orbitalControl.target.set(0, 0, -0.1);
-        //orbitalControl.enabled = false;
+        orbitalControl.enabled = false;
         //orbitalControl.autoRotate = true;
         orbitalControl.update();
 
@@ -134,48 +168,48 @@
 
         //Drawing
         canvasBottomTexture = new THREE.CanvasTexture(canvasBottom);
-          canvasBottomTexture.flipY = true;
-          canvasBottomTexture.premultiplyAlpha = true;
-          const canvasBottomMaterial = new THREE.MeshBasicMaterial({
-            map: canvasBottomTexture,
-            transparent: true,
-          });
-          const bottomPlane = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), canvasBottomMaterial);
-          bottomPlane.position.set(0, 0, 0.15);
-          scene.add(bottomPlane);
+        canvasBottomTexture.flipY = true;
+        canvasBottomTexture.premultiplyAlpha = true;
+        const canvasBottomMaterial = new THREE.MeshBasicMaterial({
+          map: canvasBottomTexture,
+          transparent: true,
+        });
+        const bottomPlane = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), canvasBottomMaterial);
+        bottomPlane.position.set(0, 0, 0.15);
+        scene.add(bottomPlane);
 
-          canvasTopTexture = new THREE.CanvasTexture(canvasTop);
-          canvasTopTexture.flipY = true;
-          canvasTopTexture.premultiplyAlpha = true;
-          const canvasTopMaterial = new THREE.MeshBasicMaterial({
-            map: canvasTopTexture,
-            transparent: true,
-          });
-          const topPlane = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), canvasTopMaterial);
-          topPlane.position.set(0, 0, 2);
-          scene.add(topPlane);
+        canvasTopTexture = new THREE.CanvasTexture(canvasTop);
+        canvasTopTexture.flipY = true;
+        canvasTopTexture.premultiplyAlpha = true;
+        const canvasTopMaterial = new THREE.MeshBasicMaterial({
+          map: canvasTopTexture,
+          transparent: true,
+        });
+        const topPlane = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), canvasTopMaterial);
+        topPlane.position.set(0, 0, 2);
+        scene.add(topPlane);
 
-          canvasTextureArtist = new THREE.CanvasTexture(canvasArtist);
-          canvasTextureArtist.magFilter = THREE.NearestFilter;
-          canvasTextureArtist.minFilter = THREE.NearestFilter;
-          canvasTextureArtist.flipY = true;
-          const canvasMaterialArtist = new THREE.MeshBasicMaterial({ map: canvasTextureArtist, transparent: true });
-          const artistPlane = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.5), canvasMaterialArtist);
-          artistPlane.position.set(-3.9, -2.1, 0.15);
-          scene.add(artistPlane);
+        canvasTextureArtist = new THREE.CanvasTexture(canvasArtist);
+        canvasTextureArtist.magFilter = THREE.NearestFilter;
+        canvasTextureArtist.minFilter = THREE.NearestFilter;
+        canvasTextureArtist.flipY = true;
+        const canvasMaterialArtist = new THREE.MeshBasicMaterial({ map: canvasTextureArtist, transparent: true });
+        const artistPlane = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.5), canvasMaterialArtist);
+        artistPlane.position.set(-3.9, -2.1, 0.15);
+        scene.add(artistPlane);
 
-          canvasTextureVisualizer = new THREE.CanvasTexture(canvasVizualizer);
-          //canvasTextureVisualizer.magFilter = THREE.NearestFilter;
-          //canvasTextureVisualizer.minFilter = THREE.NearestFilter;
-          canvasTextureVisualizer.flipY = true;
-          canvasTextureVisualizer.premultiplyAlpha = true;
-          const canvasMaterialVisualizer = new THREE.MeshBasicMaterial({
-            map: canvasTextureVisualizer,
-            transparent: true,
-          });
-          const vizPlane = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.5), canvasMaterialVisualizer);
-          vizPlane.position.set(-3.9, -2.1, 0.16);
-          scene.add(vizPlane);
+        canvasTextureVisualizer = new THREE.CanvasTexture(canvasVizualizer);
+        //canvasTextureVisualizer.magFilter = THREE.NearestFilter;
+        //canvasTextureVisualizer.minFilter = THREE.NearestFilter;
+        canvasTextureVisualizer.flipY = true;
+        canvasTextureVisualizer.premultiplyAlpha = true;
+        const canvasMaterialVisualizer = new THREE.MeshBasicMaterial({
+          map: canvasTextureVisualizer,
+          transparent: true,
+        });
+        const vizPlane = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.5), canvasMaterialVisualizer);
+        vizPlane.position.set(-3.9, -2.1, 0.16);
+        scene.add(vizPlane);
 
         //Motherboard
         const loader = new GLTFLoader();
@@ -202,7 +236,7 @@
           gltf.scene.traverse(function (child) {
             if (child.isMesh) child.castShadow = true;
           });
-          
+
           scene.add(gltf.scene);
         });
 
@@ -265,11 +299,31 @@
 
       function livelyPropertyListener(name, val) {
         switch (name) {
+          case "xAngleCamera":
+            if (cameraContainer != null) {
+              cameraContainer.rotation.x = (Math.PI / 180) * val;
+            }
+            break;
+          case "yAngleCamera":
+            if (cameraContainer != null) {
+              cameraContainer.rotation.y = (Math.PI / 180) * val;
+            }
+            break;
+          case "zoomCamera":
+            if (cameraContainer != null) {
+              cameraContainer.position.z = val;
+            }
+            break;
+          case "30fps":
+            fps = val ? 30 : 60;
+            break;
         }
       }
 
       //ref: https://stackoverflow.com/questions/2756575/drawing-text-to-canvas-with-font-face-does-not-work-at-the-first-time
-      var newFont = new FontFace("ffttusj", "url(./fonts/FFF_Tusj.ttf)");
+      var newFont = new FontFace("arimobold", "url(./fonts/Arimo-Bold-webfont.ttf)", {
+        weight: "normal",
+      });
       newFont.load().then(function (font) {
         document.fonts.add(font);
         UpdateHardware();
@@ -277,16 +331,28 @@
 
       let cpuText = "12th Gen Intel(R) Core(TM) i7-12700F 12%",
         gpuText = "NVIDIA GeForce RTX 3060 25%",
-        nicText = "Intel[R] Ethernet Controller [3] I225-V 5Mb/s",
+        nicText = "Intel[R] Ethernet Controller [3] I225-V 5.00Mb/s",
         musicText = "Running in the 90s",
-        memText = "1024/8192MB";
+        memText = "Memory 1.20/8.00GB";
+
+      let initialized = false;
 
       function livelySystemInformation(data) {
+        if (!initialized) {
+          initialized = true;
+          showModel();
+        }
+
         var obj = JSON.parse(data);
         cpuText = obj.NameCpu + " " + obj.CurrentCpu.toFixed(0) + "%";
         gpuText = obj.NameGpu + " " + obj.CurrentGpu3D.toFixed(0) + "%";
-        nicText = obj.NameNetCard + " " + ((obj.CurrentNetDown * 8) / (1024 * 1024)).toFixed(0) + "Mb/s";
-        memText = obj.TotalRam - obj.CurrentRamAvail + "/" + obj.TotalRam + "MB";
+        nicText = obj.NameNetCard + " " + (obj.CurrentNetDown / (1024 * 1024)).toFixed(2) + "MB/s";
+        memText =
+          "Memory " +
+          ((obj.TotalRam - obj.CurrentRamAvail) / 1024).toFixed(2) +
+          "/" +
+          (obj.TotalRam / 1024).toFixed(2) +
+          "GB";
 
         if (obj.CurrentCpu > 75 || obj.CurrentGpu3D > 75)
           document.body.style.setProperty("--gradientColor1", `rgb(255,0,0)`);
@@ -301,6 +367,12 @@
         UpdateHardware();
       }
 
+      function showModel() {
+        document.getElementById("loader").style.visibility = "collapse";
+        document.getElementById("container").classList.toggle("fadeIn");
+      }
+      //showModel();
+
       function UpdateHardware() {
         canvasBottomCtx.clearRect(0, 0, canvasBottom.width, canvasBottom.height);
         canvasTopCtx.clearRect(0, 0, canvasTop.width, canvasTop.height);
@@ -309,7 +381,7 @@
         canvasBottomCtx.lineWidth = canvasTopCtx.lineWidth = 5;
         canvasBottomCtx.strokeStyle = canvasTopCtx.strokeStyle = `rgb(255,255,255)`;
         canvasBottomCtx.fillStyle = canvasTopCtx.fillStyle = `rgb(255,255,255)`;
-        canvasBottomCtx.font = canvasTopCtx.font = "36px ffttusj";
+        canvasBottomCtx.font = canvasTopCtx.font = "36px arimobold";
         canvasBottomCtx.shadowColor = canvasTopCtx.shadowColor = "rgb(0,0,0)";
         canvasBottomCtx.shadowBlur = canvasTopCtx.shadowBlur = 20;
         //canvasBottomCtx.shadowOffsetX = canvasTopCtx.shadowOffsetX = 5;
@@ -322,7 +394,7 @@
         canvasTopCtx.lineTo(canvasTop.width, canvasTop.height / 2.12);
         canvasTopCtx.stroke();
         canvasTopCtx.textAlign = "right";
-        canvasTopCtx.fillText(gpuText, canvasTop.width, canvasTop.height / 2.12 - 25);
+        canvasTopCtx.fillText(gpuText.toUpperCase(), canvasTop.width, canvasTop.height / 2.12 - 25);
 
         //cpu
         canvasTopCtx.beginPath();
@@ -331,7 +403,7 @@
         canvasTopCtx.lineTo(canvasTop.width, canvasTop.height / 7);
         canvasTopCtx.stroke();
         canvasTopCtx.textAlign = "right";
-        canvasTopCtx.fillText(cpuText, canvasTop.width, canvasTop.height / 7 - 25);
+        canvasTopCtx.fillText(cpuText.toUpperCase(), canvasTop.width, canvasTop.height / 7 - 25);
 
         //ram
         canvasBottomCtx.beginPath();
@@ -340,7 +412,7 @@
         canvasBottomCtx.lineTo(canvasBottom.width, canvasBottom.height / 4);
         canvasBottomCtx.stroke();
         canvasBottomCtx.textAlign = "right";
-        canvasBottomCtx.fillText(memText, canvasBottom.width, canvasBottom.height / 3.6);
+        canvasBottomCtx.fillText(memText.toUpperCase(), canvasBottom.width, canvasBottom.height / 4 - 25);
 
         //network
         canvasBottomCtx.beginPath();
@@ -349,7 +421,7 @@
         canvasBottomCtx.lineTo(canvasBottom.width, canvasBottom.height / 1.35);
         canvasBottomCtx.stroke();
         canvasBottomCtx.textAlign = "right";
-        canvasBottomCtx.fillText(nicText, canvasBottom.width, canvasBottom.height / 1.35 - 25);
+        canvasBottomCtx.fillText(nicText.toUpperCase(), canvasBottom.width, canvasBottom.height / 1.35 - 25);
 
         //audio
         canvasBottomCtx.beginPath();
@@ -384,7 +456,7 @@
         ctxArtist.clearRect(0, 0, canvasArtist.width, canvasArtist.height);
 
         ctxArtist.textAlign = "center";
-        ctxArtist.font = songTitle.length > 20 ? "16px Arial, sans-serif" : "25px Arial, sans-serif";
+        ctxArtist.font = "25px Arial, sans-serif";
         ctxArtist.fillStyle = `rgb(${albumColor.toString()}`;
         ctxArtist.fillText(songTitle, canvasArtist.width / 2, 120 + canvasArtist.height / 2);
         ctxArtist.drawImage(albumImg, canvasArtist.width / 2 - 112.5, canvasArtist.height / 2.5 - 112.5, 225, 225);
@@ -419,7 +491,6 @@
       };
 
       function livelyAudioListener(audioArray) {
-
         maxVal = 1;
         for (var x of audioArray) {
           if (x > maxVal) maxVal = x;
