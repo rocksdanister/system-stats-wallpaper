@@ -12,6 +12,6 @@ Simply Drag'and'Drop the zip file into Lively library.
 
 
 ## Simple System 3D
-<img src="/src/Complex System 3D/nbqrhcpx.gif" width="600" height="338"/>
+<img src="/src/Simple System 3D/nbqrhcpx.gif" width="600" height="338"/>
 
 Coming soon.
