@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>three.js webgl</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+    <style>
+      @property --gradientColor1 {
+        syntax: "<color>";
+        initial-value: #2d2d2d;
+        inherits: false;
+      }
+
+      @property --gradientColor2 {
+        syntax: "<color>";
+        initial-value: #000000;
+        inherits: false;
+      }
+
+      /*
+      @font-face {
+        font-family: "arimobold";
+        src: url("./fonts/Arimo-Bold-webfont.ttf") format("truetype");
+        font-weight: normal;
+        font-style: normal;
+      }
+      */
+
+      body {
+        /* transition only works with css custom property */
+        background: radial-gradient(var(--gradientColor1), var(--gradientColor2));
+        transition: --gradientColor1 3s, --gradientColor2 3s;
+        margin: 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="container"></div>
+    <!-- Import maps polyfill -->
+    <!-- Remove this when import maps will be widely supported -->
+    <script async src="/library/es-module-shims.js"></script>
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/library/threejs/three.module.js",
+          "three/addons/": "/library/threejs/jsm/"
+        }
+      }
+    </script>
+    <script type="text/javascript">
+      //Global variables
+      var fps = 30,
+        isSignalNotFound = false;
+      var orbitalControl, cameraContainer;
+      var cpuFanSpeed = 0.1,
+        gpuFanSpeed = 0.1;
+
+      //Using two separate canvas to simplify code
+      let canvasArtist = document.createElement("canvas");
+      let canvasVizualizer = document.createElement("canvas");
+      canvasArtist.width = canvasArtist.height = canvasVizualizer.width = canvasVizualizer.height = 300;
+
+      //Top: GPU, CPU labels
+      //Bottom: Ram, Network and Soundcard labels
+      let canvasTop = document.createElement("canvas");
+      let canvasBottom = document.createElement("canvas");
+      canvasTop.width = canvasTop.height = canvasBottom.width = canvasBottom.height = 1920;
+    </script>
+    <script type="module">
+      import * as THREE from "three";
+
+      import Stats from "three/addons/libs/stats.module.js";
+
+      import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+
+      import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+      import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
+
+      import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+      import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+      import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+      import { FilmPass } from "three/addons/postprocessing/FilmPass.js";
+
+      let camera, scene, renderer, composer;
+      let canvasTextureArtist, canvasTextureVisualizer;
+      let model, canvasBottomTexture, canvasTopTexture;
+      //let stats;
+
+      function init() {
+        const container = document.getElementById("container");
+
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        //renderer.setAnimationLoop(render);
+        //renderer.setClearColor(0x000000, 0.0);
+
+        renderer.outputEncoding = THREE.sRGBEncoding;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 0.8;
+        container.appendChild(renderer.domElement);
+
+        composer = new EffectComposer(renderer);
+        window.addEventListener("resize", onWindowResize);
+
+        //stats = new Stats();
+        //container.appendChild(stats.dom);
+
+        camera = new THREE.PerspectiveCamera(52.5, window.innerWidth / window.innerHeight, 0.25, 1000);
+        cameraContainer = new THREE.Object3D();
+        cameraContainer.add(camera);
+        cameraContainer.rotation.x = (Math.PI / 180) * -5;
+        cameraContainer.rotation.y = (Math.PI / 180) * 30;
+
+        orbitalControl = new OrbitControls(camera, container);
+        orbitalControl.enableDamping = true;
+        orbitalControl.minDistance = 14;
+        orbitalControl.maxDistance = 50;
+        //orbitalControl.minAzimuthAngle = Math.PI * -0.5;
+        //orbitalControl.maxAzimuthAngle = Math.PI * 0.5;
+        orbitalControl.target.set(0, 0, -0.1);
+        //orbitalControl.enabled = false;
+        //orbitalControl.autoRotate = true;
+        orbitalControl.update();
+
+        scene = new THREE.Scene();
+        //scene.background = new THREE.Color(0x000000);
+        //scene.background = new THREE.TextureLoader().load( "textures/background.png" );
+        scene.environment = new RGBELoader().load("textures/colorful_studio_1k.hdr");
+        scene.environment.mapping = THREE.EquirectangularReflectionMapping;
+
+        // TV
+        const loader = new GLTFLoader();
+        loader.load("models/pcmr.gltf", function (gltf) {
+          const planeGeometry = new THREE.PlaneGeometry(100, 100);
+          const plane = new THREE.Mesh(
+            planeGeometry,
+            new THREE.ShadowMaterial({
+              color: new THREE.Color(0x000000),
+            })
+          );
+          plane.receiveShadow = true;
+          plane.position.set(0, -3, 0);
+          plane.rotation.x = (Math.PI / 180) * -90;
+          //plane.rotation.z = (Math.PI / 180) * -30;
+          scene.add(plane);
+
+          model = gltf;
+          gltf.scene.scale.set(1.75, 1.75, 1.75);
+          //gltf.scene.rotation.x = (Math.PI / 180) * 20;
+          //gltf.scene.rotation.y = (Math.PI / 180) * -30;
+          //gltf.scene.position.set(0.0, -5, -6);
+
+          gltf.scene.traverse(function (child) {
+            if (child.isMesh) child.castShadow = true;
+          });
+
+          canvasBottomTexture = new THREE.CanvasTexture(canvasBottom);
+          canvasBottomTexture.flipY = true;
+          canvasBottomTexture.premultiplyAlpha = true;
+          const canvasBottomMaterial = new THREE.MeshBasicMaterial({
+            map: canvasBottomTexture,
+            transparent: true,
+          });
+          const bottomPlane = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), canvasBottomMaterial);
+          bottomPlane.position.set(0, 0, 0.15);
+          scene.add(bottomPlane);
+
+          canvasTopTexture = new THREE.CanvasTexture(canvasTop);
+          canvasTopTexture.flipY = true;
+          canvasTopTexture.premultiplyAlpha = true;
+          const canvasTopMaterial = new THREE.MeshBasicMaterial({
+            map: canvasTopTexture,
+            transparent: true,
+          });
+          const topPlane = new THREE.Mesh(new THREE.PlaneGeometry(10, 10), canvasTopMaterial);
+          topPlane.position.set(0, 0, 2);
+          scene.add(topPlane);
+
+          //screenArtist.material = canvasMaterialArtist;
+          //screenVizualiser.material = canvasMaterialVisualizer;
+          scene.add(gltf.scene);
+          //scene.add(screenVizualiser);
+        });
+
+        //lighting
+        const directionalLight = new THREE.SpotLight(0xffffff, 0.1);
+        directionalLight.position.set(-30, 75, 25);
+        directionalLight.castShadow = true;
+        scene.add(directionalLight);
+
+        //post processing
+        const renderPass = new RenderPass(scene, camera);
+        composer.addPass(renderPass);
+
+        //const filmPass = new FilmPass(1, 0.1, 1024, 0);
+        //composer.addPass(filmPass);
+
+        //const bloomPass = new UnrealBloomPass(new THREE.Vector2(256, 256), 2, 0.6, 0.85);
+        //composer.addPass(bloomPass);
+      }
+
+      function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+      function render() {
+        //fps control
+        setTimeout(function () {
+          requestAnimationFrame(render);
+        }, 1000 / fps);
+
+        orbitalControl.update();
+
+        const time = -performance.now() / 1000;
+
+        if (model != null) {
+          model.scene.children[1].rotation.y -= gpuFanSpeed;
+          model.scene.children[2].rotation.y += gpuFanSpeed;
+          model.scene.children[5].rotation.x += cpuFanSpeed;
+        }
+
+        if (canvasBottomTexture != null) {
+          canvasBottomTexture.needsUpdate = true;
+        }
+
+        if (canvasTopTexture != null) {
+          canvasTopTexture.needsUpdate = true;
+        }
+
+        /*
+        if (canvasTextureArtist != null) {
+          canvasTextureArtist.needsUpdate = true;
+        }
+
+        if (canvasTextureVisualizer != null) {
+          canvasTextureVisualizer.needsUpdate = true;
+        }
+        */
+
+        composer.render();
+        //stats.update();
+      }
+
+      init();
+      render();
+    </script>
+    <script src="library/color-thief.umd.js"></script>
+    <script type="text/javascript">
+      const colorThief = new ColorThief();
+      let ctxArtist = canvasArtist.getContext("2d");
+      let canvasTopCtx = canvasTop.getContext("2d");
+      let canvasBottomCtx = canvasBottom.getContext("2d");
+
+      function livelyPropertyListener(name, val) {
+        switch (name) {
+        }
+      }
+
+      //ref: https://stackoverflow.com/questions/2756575/drawing-text-to-canvas-with-font-face-does-not-work-at-the-first-time
+      var newFont = new FontFace("arimobold", "url(./fonts/FFF_Tusj.ttf)");
+      newFont.load().then(function (font) {
+        document.fonts.add(font);
+        UpdateHardware();
+      });
+
+      let cpuText = "12th Gen Intel(R) Core(TM) i7-12700F 12%",
+        gpuText = "NVIDIA GeForce RTX 3060 25%",
+        nicText = "Intel[R] Ethernet Controller [3] I225-V 5Mb/s",
+        audioText = "Running in the 90s",
+        memText = "1024/8192MB";
+
+      function livelySystemInformation(data) {
+        var obj = JSON.parse(data);
+        cpuText = obj.NameCpu + " " + obj.CurrentCpu.toFixed(0) + "%";
+        gpuText = obj.NameGpu + " " + obj.CurrentGpu3D.toFixed(0) + "%";
+        nicText = obj.NameNetCard + " " + ((obj.CurrentNetDown * 8) / (1024 * 1024)).toFixed(0) + "Mb/s";
+        memText = obj.TotalRam - obj.CurrentRamAvail + "/" + obj.TotalRam + "MB";
+
+        if (obj.CurrentCpu > 75 || obj.CurrentGpu3D > 75) document.body.style.setProperty("--gradientColor1", `rgb(255,0,0)`);
+        else if (obj.CurrentCpu > 50 || obj.CurrentGpu3D > 50) document.body.style.setProperty("--gradientColor1", `rgb(255,87,51)`);
+        else if (obj.CurrentCpu > 25) document.body.style.setProperty("--gradientColor1", `rgb(233,116,81)`);
+        else document.body.style.setProperty("--gradientColor1", `rgb(45,45,45)`);
+
+        gpuFanSpeed = obj.CurrentGpu3D > 50 ? 0.25*obj.CurrentGpu3D/125 : 0;
+        cpuFanSpeed =  0.1 + 0.50*obj.CurrentCpu/100;
+
+        UpdateHardware();
+      }
+
+      function UpdateHardware() {
+        canvasBottomCtx.clearRect(0, 0, canvasBottom.width, canvasBottom.height);
+        canvasTopCtx.clearRect(0, 0, canvasTop.width, canvasTop.height);
+
+        //init
+        canvasBottomCtx.lineWidth = canvasTopCtx.lineWidth = 5;
+        canvasBottomCtx.strokeStyle = canvasTopCtx.strokeStyle = `rgb(255,255,255)`;
+        canvasBottomCtx.fillStyle = canvasTopCtx.fillStyle = `rgb(255,255,255)`;
+        canvasBottomCtx.font = canvasTopCtx.font = "45px arimobold";
+        canvasBottomCtx.shadowColor = canvasTopCtx.shadowColor = "rgb(0,0,0)";
+        canvasBottomCtx.shadowBlur = canvasTopCtx.shadowBlur = 20;
+        //canvasBottomCtx.shadowOffsetX = canvasTopCtx.shadowOffsetX = 5;
+        //canvasBottomCtx.shadowOffsetY = canvasTopCtx.shadowOffsetY = 5;
+
+        //gpu
+        canvasTopCtx.beginPath();
+        canvasTopCtx.moveTo(canvasTop.width / 1.7, canvasTop.height / 1.8);
+        canvasTopCtx.lineTo(canvasTop.width / 1.6, canvasTop.height / 2.12);
+        canvasTopCtx.lineTo(canvasTop.width, canvasTop.height / 2.12);
+        canvasTopCtx.stroke();
+        canvasTopCtx.textAlign = "right";
+        canvasTopCtx.fillText(gpuText, canvasTop.width, canvasTop.height / 2.12 - 25);
+
+        //cpu
+        canvasTopCtx.beginPath();
+        canvasTopCtx.moveTo(canvasTop.width / 2.1, canvasTop.height / 5);
+        canvasTopCtx.lineTo(canvasTop.width / 2, canvasTop.height / 7);
+        canvasTopCtx.lineTo(canvasTop.width, canvasTop.height / 7);
+        canvasTopCtx.stroke();
+        canvasTopCtx.textAlign = "right";
+        canvasTopCtx.fillText(cpuText, canvasTop.width, canvasTop.height / 7 - 25);
+
+        //ram
+        canvasBottomCtx.beginPath();
+        canvasBottomCtx.moveTo(canvasBottom.width / 1.35, canvasBottom.height / 3.5);
+        canvasBottomCtx.lineTo(canvasBottom.width / 1.3, canvasBottom.height / 4);
+        canvasBottomCtx.lineTo(canvasBottom.width, canvasBottom.height / 4);
+        canvasBottomCtx.stroke();
+        canvasBottomCtx.textAlign = "right";
+        canvasBottomCtx.fillText(memText, canvasBottom.width, canvasBottom.height / 3.6);
+
+        //network
+        canvasBottomCtx.beginPath();
+        canvasBottomCtx.moveTo(canvasBottom.width / 3.5, canvasBottom.height / 1.56);
+        canvasBottomCtx.lineTo(canvasBottom.width / 3.1, canvasBottom.height / 1.35);
+        canvasBottomCtx.lineTo(canvasBottom.width, canvasBottom.height / 1.35);
+        canvasBottomCtx.stroke();
+        canvasBottomCtx.textAlign = "right";
+        canvasBottomCtx.fillText(nicText, canvasBottom.width, canvasBottom.height / 1.35 - 25);
+
+        //audio
+        canvasBottomCtx.beginPath();
+        canvasBottomCtx.moveTo(canvasBottom.width / 3.8, canvasBottom.height / 1.5);
+        canvasBottomCtx.lineTo(canvasBottom.width / 3.9, canvasBottom.height / 1.55);
+        canvasBottomCtx.lineTo(0, canvasBottom.height / 1.55);
+        canvasBottomCtx.stroke();
+        canvasBottomCtx.textAlign = "left";
+        canvasBottomCtx.fillText(audioText, 0, canvasBottom.height / 1.55 - 25);
+      }
+
+      let songTitle = "",
+        songArtist = "",
+        albumColor = [225, 225, 225];
+
+      function livelyCurrentTrack(data) {
+
+        return; 
+
+        let obj = JSON.parse(data);
+        if (obj == null) {
+          isSignalNotFound = true;
+          document.body.style.setProperty("--gradientColor1", "#2d2d2d");
+        } else {
+          songTitle = obj.Title;
+          songArtist = obj.Artist;
+
+          isSignalNotFound = false;
+          if (obj.Thumbnail == null) {
+            ctxArtist.clearRect(0, 0, canvasArtist.width, canvasArtist.height);
+            document.body.style.setProperty("--gradientColor1", "#2d2d2d");
+            ctxArtist.textAlign = "center";
+            ctxArtist.font = songTitle.length > 20 ? "16px Arial, sans-serif" : "25px Arial, sans-serif";
+            ctxArtist.fillStyle = `rgb(225,225,225)`;
+            ctxArtist.fillText(songTitle, canvasArtist.width / 2, 125 + canvasArtist.height / 2);
+            albumColor = [225, 225, 225];
+            updateViz();
+          } else {
+            albumImg.src = "data:image/png;base64, " + obj.Thumbnail;
+          }
+        }
+      }
+
+      let albumImg = new Image();
+      albumImg.onload = () => {
+        ctxArtist.clearRect(0, 0, canvasArtist.width, canvasArtist.height);
+
+        albumColor = colorThief.getColor(albumImg);
+        ctxArtist.textAlign = "center";
+        ctxArtist.font = songTitle.length > 20 ? "16px Arial, sans-serif" : "25px Arial, sans-serif";
+        ctxArtist.fillStyle = `rgb(${albumColor.toString()}`;
+        ctxArtist.fillText(songTitle, canvasArtist.width / 2, 125 + canvasArtist.height / 2);
+        ctxArtist.drawImage(albumImg, canvasArtist.width / 2 - 100, canvasArtist.height / 2 - 100, 200, 200);
+        document.body.style.setProperty("--gradientColor1", `rgb(${albumColor.toString()}`);
+        updateViz(); //update visualizer color
+      };
+
+      //visualizer
+      let ctxVisualizer = canvasVizualizer.getContext("2d");
+      let gradient, max_height, startPos, vizWidth, midY;
+
+      let glob = { bloom: false, bloomRadius: 10 };
+      let backgroundColor = "rgba(0,0,0,1)";
+      let linesColor = "rgb(255,255,255)";
+      let square = true;
+
+      function updateViz() {
+        //canvas2.width = window.innerWidth;
+        //canvas2.height = window.innerHeight;
+        max_height = canvasVizualizer.height * 0.5;
+        startPos = canvasVizualizer.width * 0.1;
+        vizWidth = canvasVizualizer.width * 0.8;
+        midY = canvasVizualizer.height - canvasVizualizer.height / 6;
+
+        gradient = ctxVisualizer.createLinearGradient(0, midY, 0, max_height);
+        gradient.addColorStop(0, backgroundColor);
+        gradient.addColorStop(0.5, `rgb(${albumColor.toString()}`);
+        gradient.addColorStop(1.0, linesColor);
+      }
+
+      window.onload = () => {
+        updateViz();
+        //livelyAudioListener([0]);
+      };
+
+      function livelyAudioListener(audioArray) {
+        if (isSignalNotFound) return;
+
+        maxVal = 1;
+        for (var x of audioArray) {
+          if (x > maxVal) maxVal = x;
+        }
+
+        const offSet = vizWidth / audioArray.length;
+        const arrMid = audioArray.length / 2;
+        //ctx.fillStyle = backgroundColor;
+        //ctx.fillRect(0, 0, canvas2.width, canvas2.height);
+        ctxVisualizer.clearRect(0, 0, canvasVizualizer.width, canvasVizualizer.height);
+
+        ctxVisualizer.beginPath();
+        ctxVisualizer.lineJoin = "round";
+        ctxVisualizer.moveTo(startPos - offSet * 3, midY);
+        ctxVisualizer.lineTo(startPos, midY);
+        let posInLine = -1;
+        for (var x = 0; x < audioArray.length; x++) {
+          posInLine++;
+          ctxVisualizer.lineTo(startPos + offSet * posInLine, midY - (audioArray[x] / maxVal) * max_height);
+          if (square)
+            ctxVisualizer.lineTo(startPos + offSet * (posInLine + 1), midY - (audioArray[x] / maxVal) * max_height);
+        }
+        ctxVisualizer.lineTo(startPos + offSet * (posInLine + (square ? 1 : 0)), midY);
+        ctxVisualizer.lineTo(startPos + offSet * (posInLine + (square ? 4 : 3)), midY);
+
+        ctxVisualizer.fillStyle = gradient;
+        ctxVisualizer.fill();
+      }
+    </script>
+  </body>
+</html>

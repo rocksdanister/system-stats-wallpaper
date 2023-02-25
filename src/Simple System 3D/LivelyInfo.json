@@ -1,0 +1,17 @@
+{
+  "AppVersion": "1.0.0.0",
+  "Title": "Simple System 3D",
+  "Thumbnail": "rikyozag.jpg",
+  "Preview": "nbqrhcpx.gif",
+  "Desc": "Lively Hardware API showcase.",
+  "Author": "rocksdanister",
+  "License": "MIT",
+  "Contact": "https://github.com/rocksdanister/system-stats-wallpaper",
+  "Type": 1,
+  "FileName": "index.html",
+  "Arguments": "--audio --system-nowplaying --system-information",
+  "IsAbsolutePath": false,
+  "Id": null,
+  "Tags": null,
+  "Version": 0
+}

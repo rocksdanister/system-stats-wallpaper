@@ -1,0 +1,15 @@
+This project is MIT licensed
+Copyright (c) 2023 Rocksdanister
+Source:
+https://github.com/rocksdanister/system-stats-wallpaper
+
+Colorful Studio
+https://polyhaven.com/a/colorful_studio
+licensed under CC0
+
+Color Thief
+https://github.com/lokesh/color-thief
+MIT license
+
+TODO: Model
+TODO: Font
