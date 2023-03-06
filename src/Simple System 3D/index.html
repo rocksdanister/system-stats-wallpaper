@@ -85,6 +85,7 @@
     <script type="text/javascript">
       //Global variables
       var fps = 30,
+        waitHardwareApiInit = false,
         isNoMedia = false;
       var orbitalControl, cameraContainer;
       var cpuFanSpeed = 0.1,
@@ -295,7 +296,7 @@
           cpuFan.getObjectByName("Fan_1001").rotation.x += cpuFanSpeed;
 
           ram.material.emissive = new THREE.Color(0xff0000);
-          ram.material.emissiveIntensity = 1*audioIntensity;
+          ram.material.emissiveIntensity = 1 * audioIntensity;
         }
 
         canvasBottomTexture.needsUpdate = true;
@@ -358,7 +359,8 @@
       function livelySystemInformation(data) {
         if (!initialized) {
           initialized = true;
-          showModel();
+          if (waitHardwareApiInit)
+            showModel();
         }
 
         var obj = JSON.parse(data);
@@ -389,7 +391,6 @@
         document.getElementById("loader").style.visibility = "collapse";
         document.getElementById("container").classList.toggle("fadeIn");
       }
-      //showModel();
 
       function UpdateHardware() {
         canvasBottomCtx.clearRect(0, 0, canvasBottom.width, canvasBottom.height);
@@ -505,12 +506,14 @@
 
       window.onload = () => {
         updateViz();
+        if (!waitHardwareApiInit)
+          showModel();
         //livelyAudioListener([0]);
       };
 
       function livelyAudioListener(audioArray) {
         updateBass(audioArray);
-        
+
         maxVal = 1;
         for (var x of audioArray) {
           if (x > maxVal) maxVal = x;
