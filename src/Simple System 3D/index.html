@@ -90,7 +90,10 @@
       var orbitalControl, cameraContainer;
       var cpuFanSpeed = 0.1,
         gpuFanSpeed = 0.1,
-        audioIntensity = 1;
+        audioIntensity = 1,
+        ramRainbow = false,
+        ramColor = "#ff0000",
+        ramAudio = true;
 
       //Using two separate canvas to simplify code
       let canvasArtist = document.createElement("canvas");
@@ -124,6 +127,7 @@
       //let stats;
 
       let cpuFan, gpuFanBot, gpuFanTop, ram;
+      let ramColorHue = 0;
 
       function init() {
         const container = document.getElementById("container");
@@ -160,7 +164,7 @@
         //orbitalControl.minAzimuthAngle = Math.PI * -0.5;
         //orbitalControl.maxAzimuthAngle = Math.PI * 0.5;
         orbitalControl.target.set(0, 0, -0.1);
-        //orbitalControl.enabled = false;
+        orbitalControl.enabled = false;
         //orbitalControl.autoRotate = true;
         orbitalControl.update();
 
@@ -256,7 +260,7 @@
         });
 
         //lighting
-        const directionalLight = new THREE.SpotLight(0xffffff, 0.1);
+        const directionalLight = new THREE.SpotLight(0xffff00, 0.1);
         directionalLight.position.set(-30, 75, 25);
         directionalLight.castShadow = true;
         scene.add(directionalLight);
@@ -291,12 +295,16 @@
 
         //animation
         if (model != null) {
-          gpuFanTop.rotation.y += gpuFanSpeed;
-          gpuFanBot.rotation.y += gpuFanSpeed;
-          cpuFan.getObjectByName("Fan_1001").rotation.x += cpuFanSpeed;
+          gpuFanTop.rotation.y =
+            gpuFanTop.rotation.y - gpuFanSpeed < -2 * Math.PI ? 0 : gpuFanTop.rotation.y - gpuFanSpeed;
+          gpuFanBot.rotation.y =
+            gpuFanBot.rotation.y - gpuFanSpeed < -2 * Math.PI ? 0 : gpuFanBot.rotation.y - gpuFanSpeed;
+          cpuFan.rotation.x = cpuFan.rotation.x + cpuFanSpeed > 2 * Math.PI ? 0 : cpuFan.rotation.x + cpuFanSpeed;
 
-          ram.material.emissive = new THREE.Color(0xff0000);
-          ram.material.emissiveIntensity = 1 * audioIntensity;
+          let col = ramRainbow ? new THREE.Color(`hsl(${ramColorHue}, 100%, 50%)`) : new THREE.Color(ramColor);
+          ram.material.emissiveIntensity = audioIntensity && ramAudio > 0 ? audioIntensity : 1.0;
+          ramColorHue = ramColorHue > 359 ? 0 : ramColorHue + 1;
+          ram.material.emissive = col;
         }
 
         canvasBottomTexture.needsUpdate = true;
@@ -333,6 +341,15 @@
               cameraContainer.position.z = val;
             }
             break;
+          case "cycleRGB":
+            ramRainbow = val;
+            break;
+          case "userColor":
+            ramColor = val;
+            break;
+          case "audioRGB":
+            ramAudio = val;
+            break;
           case "30fps":
             fps = val ? 30 : 60;
             break;
@@ -359,8 +376,7 @@
       function livelySystemInformation(data) {
         if (!initialized) {
           initialized = true;
-          if (waitHardwareApiInit)
-            showModel();
+          if (waitHardwareApiInit) showModel();
         }
 
         var obj = JSON.parse(data);
@@ -506,8 +522,7 @@
 
       window.onload = () => {
         updateViz();
-        if (!waitHardwareApiInit)
-          showModel();
+        if (!waitHardwareApiInit) showModel();
         //livelyAudioListener([0]);
       };
 

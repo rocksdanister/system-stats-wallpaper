@@ -29,6 +29,25 @@
   },
   "label2": {
     "type": "label",
+    "value": "Memory"
+  },
+  "userColor": {
+    "text": "Color",
+    "type": "color",
+    "value": "#FF0000"
+  },
+  "cycleRGB": {
+    "type": "checkbox",
+    "value": true,
+    "text": "Rainbow"
+  },
+  "audioRGB": {
+    "type": "checkbox",
+    "value": true,
+    "text": "Audio"
+  },
+  "label3": {
+    "type": "label",
     "value": "Performance"
   },
   "30fps": {
