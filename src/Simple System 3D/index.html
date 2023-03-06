@@ -88,7 +88,8 @@
         isNoMedia = false;
       var orbitalControl, cameraContainer;
       var cpuFanSpeed = 0.1,
-        gpuFanSpeed = 0.1;
+        gpuFanSpeed = 0.1,
+        audioIntensity = 1;
 
       //Using two separate canvas to simplify code
       let canvasArtist = document.createElement("canvas");
@@ -120,6 +121,8 @@
       let canvasTextureArtist, canvasTextureVisualizer;
       let model, canvasBottomTexture, canvasTopTexture;
       //let stats;
+
+      let cpuFan, gpuFanBot, gpuFanTop, ram;
 
       function init() {
         const container = document.getElementById("container");
@@ -156,7 +159,7 @@
         //orbitalControl.minAzimuthAngle = Math.PI * -0.5;
         //orbitalControl.maxAzimuthAngle = Math.PI * 0.5;
         orbitalControl.target.set(0, 0, -0.1);
-        orbitalControl.enabled = false;
+        //orbitalControl.enabled = false;
         //orbitalControl.autoRotate = true;
         orbitalControl.update();
 
@@ -213,7 +216,7 @@
 
         //Motherboard
         const loader = new GLTFLoader();
-        loader.load("models/pcmr.gltf", function (gltf) {
+        loader.load("models/test.glb", function (gltf) {
           const planeGeometry = new THREE.PlaneGeometry(100, 100);
           const plane = new THREE.Mesh(
             planeGeometry,
@@ -227,7 +230,6 @@
           //plane.rotation.z = (Math.PI / 180) * -30;
           scene.add(plane);
 
-          model = gltf;
           gltf.scene.scale.set(1.75, 1.75, 1.75);
           //gltf.scene.rotation.x = (Math.PI / 180) * 20;
           //gltf.scene.rotation.y = (Math.PI / 180) * -30;
@@ -237,13 +239,25 @@
             if (child.isMesh) child.castShadow = true;
           });
 
+          /*
+          gltf.scene.traverse(function (object) {
+            if (object.isMesh) console.log(object);
+          });
+          */
+
+          gpuFanTop = gltf.scene.getObjectByName("Fan_F_Black_Fan_0");
+          gpuFanBot = gltf.scene.getObjectByName("Fan_B_Black_Fan_0");
+          cpuFan = gltf.scene.getObjectByName("Fan_1001");
+          ram = gltf.scene.getObjectByName("pCube911_RGBM_0004");
+
+          model = gltf;
           scene.add(gltf.scene);
         });
 
         //lighting
         const directionalLight = new THREE.SpotLight(0xffffff, 0.1);
         directionalLight.position.set(-30, 75, 25);
-        directionalLight.castShadow = false;
+        directionalLight.castShadow = true;
         scene.add(directionalLight);
 
         //post processing
@@ -274,10 +288,14 @@
 
         const time = -performance.now() / 1000;
 
+        //animation
         if (model != null) {
-          model.scene.children[1].rotation.y -= gpuFanSpeed;
-          model.scene.children[2].rotation.y += gpuFanSpeed;
-          model.scene.children[5].rotation.x += cpuFanSpeed;
+          gpuFanTop.rotation.y += gpuFanSpeed;
+          gpuFanBot.rotation.y += gpuFanSpeed;
+          cpuFan.getObjectByName("Fan_1001").rotation.x += cpuFanSpeed;
+
+          ram.material.emissive = new THREE.Color(0xff0000);
+          ram.material.emissiveIntensity = 1*audioIntensity;
         }
 
         canvasBottomTexture.needsUpdate = true;
@@ -491,6 +509,8 @@
       };
 
       function livelyAudioListener(audioArray) {
+        updateBass(audioArray);
+        
         maxVal = 1;
         for (var x of audioArray) {
           if (x > maxVal) maxVal = x;
@@ -518,6 +538,16 @@
 
         ctxVisualizer.fillStyle = gradient;
         ctxVisualizer.fill();
+      }
+
+      function updateBass(audioArray) {
+        let bass = 0;
+        for (let i = 0; i <= 40; i++) bass += audioArray[i] * 2;
+        bass /= 40 * 2 * 0.1;
+        audioIntensity -= 0.1;
+        audioIntensity = (Math.floor(bass * 0.5 * 5) * 10) / 100;
+        if (audioIntensity > 1) audioIntensity = 1;
+        if (audioIntensity < 0) audioIntensity = 0;
       }
     </script>
   </body>
