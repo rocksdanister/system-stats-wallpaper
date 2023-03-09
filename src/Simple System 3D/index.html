@@ -85,7 +85,7 @@
     <script type="text/javascript">
       //Global variables
       var fps = 30,
-        waitHardwareApiInit = false,
+        waitHardwareApiInit = true,
         isNoMedia = false;
       var orbitalControl, cameraContainer;
       var cpuFanSpeed = 0.1,
@@ -338,7 +338,7 @@
             break;
           case "zoomCamera":
             if (cameraContainer != null) {
-              cameraContainer.position.z = val;
+              cameraContainer.position.z = -1*val;
             }
             break;
           case "cycleRGB":
