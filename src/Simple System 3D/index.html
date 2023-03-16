@@ -112,6 +112,8 @@
       import Stats from "three/addons/libs/stats.module.js";
 
       import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+      import { RectAreaLightHelper } from "three/addons/helpers/RectAreaLightHelper.js";
+      import { RectAreaLightUniformsLib } from "three/addons/lights/RectAreaLightUniformsLib.js";
 
       import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
       import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
@@ -127,7 +129,8 @@
       //let stats;
 
       let cpuFan, gpuFanBot, gpuFanTop, ram;
-      let ramColorHue = 0;
+      let ramColorHue = 0,
+        ramLightStrip;
 
       function init() {
         const container = document.getElementById("container");
@@ -142,7 +145,7 @@
 
         renderer.outputEncoding = THREE.sRGBEncoding;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 0.8;
+        renderer.toneMappingExposure = 0.9;
         container.appendChild(renderer.domElement);
 
         composer = new EffectComposer(renderer);
@@ -164,7 +167,7 @@
         //orbitalControl.minAzimuthAngle = Math.PI * -0.5;
         //orbitalControl.maxAzimuthAngle = Math.PI * 0.5;
         orbitalControl.target.set(0, 0, -0.1);
-        orbitalControl.enabled = false;
+        //orbitalControl.enabled = true;
         //orbitalControl.autoRotate = true;
         orbitalControl.update();
 
@@ -173,6 +176,8 @@
         //scene.background = new THREE.TextureLoader().load( "textures/background.png" );
         scene.environment = new RGBELoader().load("textures/colorful_studio_1k.hdr");
         scene.environment.mapping = THREE.EquirectangularReflectionMapping;
+
+        RectAreaLightUniformsLib.init();
 
         //Drawing
         canvasBottomTexture = new THREE.CanvasTexture(canvasBottom);
@@ -260,10 +265,17 @@
         });
 
         //lighting
-        const directionalLight = new THREE.SpotLight(0xffff00, 0.1);
-        directionalLight.position.set(-30, 75, 25);
-        directionalLight.castShadow = true;
-        scene.add(directionalLight);
+        const spotLight = new THREE.SpotLight(0xffffff, 0.1);
+        spotLight.position.set(-30, 75, 25);
+        spotLight.castShadow = true;
+        scene.add(spotLight);
+        //scene.add(new THREE.SpotLightHelper( spotLight ));
+
+        ramLightStrip = new THREE.RectAreaLight(0xff0000, 1, 1, 3.5);
+        ramLightStrip.position.set(2, 1.75, 1);
+        ramLightStrip.lookAt(2, 1.75, 2);
+        scene.add(ramLightStrip);
+        //scene.add(new RectAreaLightHelper(ramLight));
 
         //post processing
         const renderPass = new RenderPass(scene, camera);
@@ -305,6 +317,7 @@
           ram.material.emissiveIntensity = audioIntensity && ramAudio > 0 ? audioIntensity : 1.0;
           ramColorHue = ramColorHue > 359 ? 0 : ramColorHue + 1;
           ram.material.emissive = col;
+          ramLightStrip.color = col;
         }
 
         canvasBottomTexture.needsUpdate = true;
@@ -338,7 +351,7 @@
             break;
           case "zoomCamera":
             if (cameraContainer != null) {
-              cameraContainer.position.z = -1*val;
+              cameraContainer.position.z = -1 * val;
             }
             break;
           case "cycleRGB":
