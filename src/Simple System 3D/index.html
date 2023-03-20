@@ -84,8 +84,8 @@
     </script>
     <script type="text/javascript">
       //Global variables
-      var fps = 30,
-        waitHardwareApiInit = true,
+      var fps = 24,
+        isDebugging = false,
         isNoMedia = false;
       var orbitalControl, cameraContainer;
       var cpuFanSpeed = 0.1,
@@ -128,7 +128,7 @@
       let model, canvasBottomTexture, canvasTopTexture;
       //let stats;
 
-      let cpuFan, gpuFanBot, gpuFanTop, ram;
+      let cpuFan, gpuFanBot, gpuFanTop, ramMaterial;
       let ramColorHue = 0,
         ramLightStrip;
 
@@ -162,19 +162,19 @@
 
         orbitalControl = new OrbitControls(camera, container);
         orbitalControl.enableDamping = true;
-        orbitalControl.minDistance = 14;
+        orbitalControl.minDistance = 12;
         orbitalControl.maxDistance = 50;
         //orbitalControl.minAzimuthAngle = Math.PI * -0.5;
         //orbitalControl.maxAzimuthAngle = Math.PI * 0.5;
         orbitalControl.target.set(0, 0, -0.1);
-        //orbitalControl.enabled = true;
+        orbitalControl.enabled = isDebugging;
         //orbitalControl.autoRotate = true;
         orbitalControl.update();
 
         scene = new THREE.Scene();
         //scene.background = new THREE.Color(0x000000);
         //scene.background = new THREE.TextureLoader().load( "textures/background.png" );
-        scene.environment = new RGBELoader().load("textures/colorful_studio_1k.hdr");
+        scene.environment = new RGBELoader().load("textures/thatch_chapel_1k.hdr");
         scene.environment.mapping = THREE.EquirectangularReflectionMapping;
 
         RectAreaLightUniformsLib.init();
@@ -224,9 +224,34 @@
         vizPlane.position.set(-3.9, -2.1, 0.16);
         scene.add(vizPlane);
 
+        let fleeceTexture = new THREE.TextureLoader().load("textures/fleece.jpg");
+        /*
+        ramMaterial = new THREE.MeshPhysicalMaterial({
+          roughness: 0.2,
+          transmission: 0.5,
+          metalness: 1,
+          thickness: 1,
+          color: new THREE.Color(ramColor),
+          emissive: new THREE.Color(ramColor),
+          emissiveIntensity: 1,
+          envMap: scene.environment,
+          envMapIntensity: 1,
+          //map: fleeceTexture,
+          roughnessMap: fleeceTexture,
+        });
+        */
+        ramMaterial = new THREE.MeshStandardMaterial({
+          color: new THREE.Color(ramColor),
+          emissive: new THREE.Color(ramColor),
+          emissiveIntensity: 0.3,
+          roughness: 0.5,
+          roughnessMap: fleeceTexture,
+          map: fleeceTexture,
+        });
+
         //Motherboard
         const loader = new GLTFLoader();
-        loader.load("models/test.glb", function (gltf) {
+        loader.load("models/pcmr.glb", function (gltf) {
           const planeGeometry = new THREE.PlaneGeometry(100, 100);
           const plane = new THREE.Mesh(
             planeGeometry,
@@ -258,7 +283,13 @@
           gpuFanTop = gltf.scene.getObjectByName("Fan_F_Black_Fan_0");
           gpuFanBot = gltf.scene.getObjectByName("Fan_B_Black_Fan_0");
           cpuFan = gltf.scene.getObjectByName("Fan_1001");
-          ram = gltf.scene.getObjectByName("pCube911_RGBM_0004");
+          //ram = gltf.scene.getObjectByName("pCube911_RGBM_0004");
+
+          gltf.scene.getObjectByName("pCube911_RGBM_0004").material =
+            gltf.scene.getObjectByName("pCube911_RGBM_0005").material =
+            gltf.scene.getObjectByName("pCube911_RGBM_0006").material =
+            gltf.scene.getObjectByName("pCube911_RGBM_0007").material =
+              ramMaterial;
 
           model = gltf;
           scene.add(gltf.scene);
@@ -271,11 +302,16 @@
         scene.add(spotLight);
         //scene.add(new THREE.SpotLightHelper( spotLight ));
 
-        ramLightStrip = new THREE.RectAreaLight(0xff0000, 1, 1, 3.5);
+        const dirLight = new THREE.DirectionalLight(0xff0000, 0.1);
+        dirLight.position.set(-30, 75, 25);
+        dirLight.castShadow = true;
+        // scene.add(dirLight);
+
+        ramLightStrip = new THREE.RectAreaLight(ramColor, 1, 1, 3.5);
         ramLightStrip.position.set(2, 1.75, 1);
         ramLightStrip.lookAt(2, 1.75, 2);
         scene.add(ramLightStrip);
-        //scene.add(new RectAreaLightHelper(ramLight));
+        //scene.add(new RectAreaLightHelper(ramLightStrip));
 
         //post processing
         const renderPass = new RenderPass(scene, camera);
@@ -284,7 +320,7 @@
         //const filmPass = new FilmPass(1, 0.1, 1024, 0);
         //composer.addPass(filmPass);
 
-        //const bloomPass = new UnrealBloomPass(new THREE.Vector2(256, 256), 2, 0.6, 0.85);
+        //const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.2, 0.1, 0.1);
         //composer.addPass(bloomPass);
       }
 
@@ -314,9 +350,10 @@
           cpuFan.rotation.x = cpuFan.rotation.x + cpuFanSpeed > 2 * Math.PI ? 0 : cpuFan.rotation.x + cpuFanSpeed;
 
           let col = ramRainbow ? new THREE.Color(`hsl(${ramColorHue}, 100%, 50%)`) : new THREE.Color(ramColor);
-          ram.material.emissiveIntensity = audioIntensity && ramAudio > 0 ? audioIntensity : 1.0;
+          ramMaterial.emissiveIntensity = audioIntensity && ramAudio > 0 ? audioIntensity : 0.3;
           ramColorHue = ramColorHue > 359 ? 0 : ramColorHue + 1;
-          ram.material.emissive = col;
+          ramMaterial.emissive = col;
+          ramMaterial.color = col;
           ramLightStrip.color = col;
         }
 
@@ -336,6 +373,12 @@
       let ctxArtist = canvasArtist.getContext("2d");
       let canvasTopCtx = canvasTop.getContext("2d");
       let canvasBottomCtx = canvasBottom.getContext("2d");
+      //toggles
+      let _sound = true,
+        _cpu = true,
+        _gpu = true,
+        _ram = true,
+        _network = true;
 
       function livelyPropertyListener(name, val) {
         switch (name) {
@@ -388,8 +431,9 @@
 
       function livelySystemInformation(data) {
         if (!initialized) {
+          //takes time to initialize
           initialized = true;
-          if (waitHardwareApiInit) showModel();
+          if (!isDebugging) showModel();
         }
 
         var obj = JSON.parse(data);
@@ -435,50 +479,55 @@
         //canvasBottomCtx.shadowOffsetX = canvasTopCtx.shadowOffsetX = 5;
         //canvasBottomCtx.shadowOffsetY = canvasTopCtx.shadowOffsetY = 5;
 
-        //gpu
-        canvasTopCtx.beginPath();
-        canvasTopCtx.moveTo(canvasTop.width / 1.7, canvasTop.height / 1.8);
-        canvasTopCtx.lineTo(canvasTop.width / 1.6, canvasTop.height / 2.12);
-        canvasTopCtx.lineTo(canvasTop.width, canvasTop.height / 2.12);
-        canvasTopCtx.stroke();
-        canvasTopCtx.textAlign = "right";
-        canvasTopCtx.fillText(gpuText.toUpperCase(), canvasTop.width, canvasTop.height / 2.12 - 25);
+        if (_gpu) {
+          canvasTopCtx.beginPath();
+          canvasTopCtx.moveTo(canvasTop.width / 1.7, canvasTop.height / 1.8);
+          canvasTopCtx.lineTo(canvasTop.width / 1.6, canvasTop.height / 2.12);
+          canvasTopCtx.lineTo(canvasTop.width, canvasTop.height / 2.12);
+          canvasTopCtx.stroke();
+          canvasTopCtx.textAlign = "right";
+          canvasTopCtx.fillText(gpuText.toUpperCase(), canvasTop.width, canvasTop.height / 2.12 - 25);
+        }
 
-        //cpu
-        canvasTopCtx.beginPath();
-        canvasTopCtx.moveTo(canvasTop.width / 2.1, canvasTop.height / 5);
-        canvasTopCtx.lineTo(canvasTop.width / 2, canvasTop.height / 7);
-        canvasTopCtx.lineTo(canvasTop.width, canvasTop.height / 7);
-        canvasTopCtx.stroke();
-        canvasTopCtx.textAlign = "right";
-        canvasTopCtx.fillText(cpuText.toUpperCase(), canvasTop.width, canvasTop.height / 7 - 25);
+        if (_cpu) {
+          canvasTopCtx.beginPath();
+          canvasTopCtx.moveTo(canvasTop.width / 2.1, canvasTop.height / 5);
+          canvasTopCtx.lineTo(canvasTop.width / 2, canvasTop.height / 7);
+          canvasTopCtx.lineTo(canvasTop.width, canvasTop.height / 7);
+          canvasTopCtx.stroke();
+          canvasTopCtx.textAlign = "right";
+          canvasTopCtx.fillText(cpuText.toUpperCase(), canvasTop.width, canvasTop.height / 7 - 25);
+        }
 
-        //ram
-        canvasBottomCtx.beginPath();
-        canvasBottomCtx.moveTo(canvasBottom.width / 1.35, canvasBottom.height / 3.5);
-        canvasBottomCtx.lineTo(canvasBottom.width / 1.3, canvasBottom.height / 4);
-        canvasBottomCtx.lineTo(canvasBottom.width, canvasBottom.height / 4);
-        canvasBottomCtx.stroke();
-        canvasBottomCtx.textAlign = "right";
-        canvasBottomCtx.fillText(memText.toUpperCase(), canvasBottom.width, canvasBottom.height / 4 - 25);
+        if (_ram) {
+          canvasBottomCtx.beginPath();
+          canvasBottomCtx.moveTo(canvasBottom.width / 1.35, canvasBottom.height / 3.5);
+          canvasBottomCtx.lineTo(canvasBottom.width / 1.3, canvasBottom.height / 4);
+          canvasBottomCtx.lineTo(canvasBottom.width, canvasBottom.height / 4);
+          canvasBottomCtx.stroke();
+          canvasBottomCtx.textAlign = "right";
+          canvasBottomCtx.fillText(memText.toUpperCase(), canvasBottom.width, canvasBottom.height / 4 - 25);
+        }
 
-        //network
-        canvasBottomCtx.beginPath();
-        canvasBottomCtx.moveTo(canvasBottom.width / 3.5, canvasBottom.height / 1.56);
-        canvasBottomCtx.lineTo(canvasBottom.width / 3.2, canvasBottom.height / 1.35);
-        canvasBottomCtx.lineTo(canvasBottom.width, canvasBottom.height / 1.35);
-        canvasBottomCtx.stroke();
-        canvasBottomCtx.textAlign = "right";
-        canvasBottomCtx.fillText(nicText.toUpperCase(), canvasBottom.width, canvasBottom.height / 1.35 - 25);
+        if (_network) {
+          canvasBottomCtx.beginPath();
+          canvasBottomCtx.moveTo(canvasBottom.width / 3.5, canvasBottom.height / 1.56);
+          canvasBottomCtx.lineTo(canvasBottom.width / 3.2, canvasBottom.height / 1.35);
+          canvasBottomCtx.lineTo(canvasBottom.width, canvasBottom.height / 1.35);
+          canvasBottomCtx.stroke();
+          canvasBottomCtx.textAlign = "right";
+          canvasBottomCtx.fillText(nicText.toUpperCase(), canvasBottom.width, canvasBottom.height / 1.35 - 25);
+        }
 
-        //audio
-        canvasBottomCtx.beginPath();
-        canvasBottomCtx.moveTo(canvasBottom.width / 3.8, canvasBottom.height / 1.5);
-        canvasBottomCtx.lineTo(canvasBottom.width / 3.9, canvasBottom.height / 1.6);
-        canvasBottomCtx.lineTo(100, canvasBottom.height / 1.6);
-        canvasBottomCtx.stroke();
-        //canvasBottomCtx.textAlign = "left";
-        //canvasBottomCtx.fillText(musicText, 0, canvasBottom.height / 1.6 - 25);
+        if (_sound) {
+          canvasBottomCtx.beginPath();
+          canvasBottomCtx.moveTo(canvasBottom.width / 3.8, canvasBottom.height / 1.5);
+          canvasBottomCtx.lineTo(canvasBottom.width / 3.9, canvasBottom.height / 1.6);
+          canvasBottomCtx.lineTo(100, canvasBottom.height / 1.6);
+          canvasBottomCtx.stroke();
+          //canvasBottomCtx.textAlign = "left";
+          //canvasBottomCtx.fillText(musicText, 0, canvasBottom.height / 1.6 - 25);
+        }
       }
 
       let songTitle = "",
@@ -535,8 +584,10 @@
 
       window.onload = () => {
         updateViz();
-        if (!waitHardwareApiInit) showModel();
-        //livelyAudioListener([0]);
+        if (isDebugging) {
+          showModel();
+          livelyCurrentTrack(null);
+        }
       };
 
       function livelyAudioListener(audioArray) {
