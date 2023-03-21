@@ -38,21 +38,12 @@
   },
   "cycleRGB": {
     "type": "checkbox",
-    "value": true,
+    "value": false,
     "text": "Rainbow"
   },
   "audioRGB": {
     "type": "checkbox",
     "value": true,
     "text": "Audio"
-  },
-  "label3": {
-    "type": "label",
-    "value": "Performance"
-  },
-  "30fps": {
-    "type": "checkbox",
-    "value": true,
-    "text": "30 Fps cap"
   }
 }

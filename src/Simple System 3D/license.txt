@@ -1,15 +1,34 @@
-This project is MIT licensed
+This project code is MIT licensed
 Copyright (c) 2023 Rocksdanister
 Source:
 https://github.com/rocksdanister/system-stats-wallpaper
 
-Colorful Studio
-https://polyhaven.com/a/colorful_studio
+"Thatch Chapel" HDRI
+https://polyhaven.com/a/thatch_chapel
 licensed under CC0
 
-TODO: Model
-TODO: Font
-MIT license
+Gray Fleece Textile by Hoang Le
+https://www.pexels.com/photo/gray-fleece-textile-978462/
 
 Icons by icons8
 https://icons8.com
+
+"Storage (SSD, HDD, M.2)" by Blue Odym
+https://sketchfab.com/3d-models/storage-ssd-hdd-m2-bdd5fd67a7674359ab8648204b5c0575
+licensed under CC BY 4.0
+
+RAM module from "MotherBoard + Components" by Daniel Cardona
+https://sketchfab.com/3d-models/motherboard-components-3bc94057328243d4b341a55f59160f8a
+licensed under CC BY 4.0
+
+"Motherboards" by Blue Odym
+https://sketchfab.com/3d-models/motherboards-1f048989362d402d80302e2f87e3580e
+licensed under CC BY 4.0
+
+"Dark Rock Pro 4" by Blue Odym
+https://sketchfab.com/blue-odym
+licensed under CC BY 4.0
+
+"Nvidia GeForce RTX 3090" by Cem Gürbüz
+https://sketchfab.com/3d-models/nvidia-geforce-rtx-3090-9b7cd73fefd5435f99f891567f5a9c2e
+licensed under CC BY-NC 4.0 (Attribution-NonCommercial 4.0 International)

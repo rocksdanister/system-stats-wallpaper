@@ -84,7 +84,7 @@
     </script>
     <script type="text/javascript">
       //Global variables
-      var fps = 24,
+      var fps = 30,
         isDebugging = false,
         isNoMedia = false;
       var orbitalControl, cameraContainer;
@@ -302,9 +302,9 @@
         scene.add(spotLight);
         //scene.add(new THREE.SpotLightHelper( spotLight ));
 
-        const dirLight = new THREE.DirectionalLight(0xff0000, 0.1);
-        dirLight.position.set(-30, 75, 25);
-        dirLight.castShadow = true;
+        //const dirLight = new THREE.DirectionalLight(0xff0000, 0.1);
+        //dirLight.position.set(-30, 75, 25);
+        //dirLight.castShadow = true;
         // scene.add(dirLight);
 
         ramLightStrip = new THREE.RectAreaLight(ramColor, 1, 1, 3.5);
@@ -451,7 +451,8 @@
           document.body.style.setProperty("--gradientColor1", `rgb(255,0,0)`);
         else if (obj.CurrentCpu > 50 || obj.CurrentGpu3D > 50)
           document.body.style.setProperty("--gradientColor1", `rgb(255,87,51)`);
-        else if (obj.CurrentCpu > 25) document.body.style.setProperty("--gradientColor1", `rgb(233,116,81)`);
+        else if (obj.CurrentCpu > 35 || obj.CurrentGpu3D > 35)
+          document.body.style.setProperty("--gradientColor1", `rgb(233,116,81)`);
         else document.body.style.setProperty("--gradientColor1", `rgb(45,45,45)`);
 
         gpuFanSpeed = obj.CurrentGpu3D > 50 ? (0.25 * obj.CurrentGpu3D) / 125 : 0;

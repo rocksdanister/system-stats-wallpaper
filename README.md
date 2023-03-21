@@ -4,8 +4,8 @@ Wallpapers that showcase [Lively Hardware API features.](https://github.com/rock
 | Name               | Preview                                                       | Description                                               |
 | ------------------ | ------------------------------------------------------------- | -----------------------------------------------------     |
 | Simple System      | <img src="/src/Simple System/lively_p.gif" width="300" />     | Minimal wallpaper that shows hardware readings in graph   |
-| Simple System 3D   | <img src="/src/Simple System 3D/nbqrhcpx.gif" width="300" />  | (Coming soon) 3D wallpaper that shows hardware readings   |
+| Simple System 3D   | <img src="/src/Simple System 3D/nbqrhcpx.gif" width="300" />  | 3D wallpaper that shows hardware readings   |
 
 [**Download**](https://github.com/rocksdanister/system-stats-wallpaper/releases)
 
-Require [Lively Wallpaper](https://github.com/rocksdanister/lively) v1.1.7 or above.
+Require [Lively Wallpaper](https://github.com/rocksdanister/lively) v2.0.6.0 or above.
