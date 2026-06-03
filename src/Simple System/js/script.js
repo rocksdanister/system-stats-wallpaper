@@ -11,17 +11,39 @@ var netCardName = "";
 var isChartInit = false;
 
 var chartColors = {
-    red: 'rgb(255, 99, 132)',
-    orange: 'rgb(255, 159, 64)',
-    yellow: 'rgb(255, 205, 86)',
-    green: 'rgb(0, 192, 0)',
-    blue: 'rgb(54, 162, 235)',
-    purple: 'rgb(153, 102, 255)',
-    grey: 'rgb(201, 203, 207)',
-    lightGrey: 'rgb(105, 105, 105)',
-    black: 'rgb(0, 0, 0)', 
+    primary: '#c9cbcf',
+    secondary: '#696969',
 };
 var color = Chart.helpers.color;
+
+function applyDatasetColors(dataset, lineColor) {
+    dataset.borderColor = lineColor;
+    dataset.backgroundColor = color(lineColor).alpha(0.5).rgbString();
+}
+
+function applyChartColorsToConfigs() {
+    applyDatasetColors(cpuChartConfig.data.datasets[0], chartColors.primary);
+    applyDatasetColors(gpuChartConfig.data.datasets[0], chartColors.primary);
+    applyDatasetColors(ramChartConfig.data.datasets[0], chartColors.primary);
+    applyDatasetColors(netChartConfig.data.datasets[0], chartColors.primary);
+    applyDatasetColors(netChartConfig.data.datasets[1], chartColors.secondary);
+}
+
+function updateLiveChartColors() {
+    applyChartColorsToConfigs();
+    if (!isChartInit) {
+        return;
+    }
+    applyDatasetColors(cpuChart.data.datasets[0], chartColors.primary);
+    applyDatasetColors(gpuChart.data.datasets[0], chartColors.primary);
+    applyDatasetColors(ramChart.data.datasets[0], chartColors.primary);
+    applyDatasetColors(netChart.data.datasets[0], chartColors.primary);
+    applyDatasetColors(netChart.data.datasets[1], chartColors.secondary);
+    cpuChart.update();
+    gpuChart.update();
+    ramChart.update();
+    netChart.update();
+}
 
 //global chart defaults
 Chart.defaults.global.legend.display = false;
@@ -34,8 +56,6 @@ var cpuChartConfig = {
     data: {
         datasets: [{
             label: 'Dataset 1',
-            backgroundColor: color(chartColors.grey).alpha(0.5).rgbString(),
-            borderColor: chartColors.grey,
             fill: false,
             lineTension: 0,
             borderDash: [0, 0],
@@ -86,8 +106,6 @@ var gpuChartConfig = {
     data: {
         datasets: [{
             label: 'Dataset 1 (linear interpolation)',
-            backgroundColor: color(chartColors.grey).alpha(0.5).rgbString(),
-            borderColor: chartColors.grey,
             fill: false,
             lineTension: 0,
             borderDash: [0, 0],
@@ -136,8 +154,6 @@ var netChartConfig = {
     data: {
         datasets: [{
             label: 'Net Down',
-            backgroundColor: color(chartColors.grey).alpha(0.5).rgbString(),
-            borderColor: chartColors.grey,
             fill: false,
             lineTension: 0,
             borderDash: [0, 0],
@@ -146,8 +162,6 @@ var netChartConfig = {
         },
         {
             label: 'Net Up',
-            backgroundColor: color(chartColors.lightGrey).alpha(0.5).rgbString(),
-            borderColor: chartColors.lightGrey,
             fill: false,
             lineTension: 0,
             borderDash: [0, 0],
@@ -195,8 +209,6 @@ var ramChartConfig = {
     data: {
         datasets: [{
             label: 'Dataset 1 (linear interpolation)',
-            backgroundColor: color(chartColors.grey).alpha(0.5).rgbString(),
-            borderColor: chartColors.grey,
             fill: false,
             lineTension: 0,
             borderDash: [0, 0],
@@ -274,6 +286,7 @@ function onRefresh(chart)
 var cpuChart, gpuChart, netChart, ramChart;
 function initChart() 
 {
+    applyChartColorsToConfigs();
     cpuChartConfig.options.title.text = cpuName;
     gpuChartConfig.options.title.text = gpuName;
     netChartConfig.options.title.text = netCardName;
@@ -315,6 +328,34 @@ function livelySystemInformation(data)
         isChartInit = true;
         initChart();
     }
+}
+
+function setBackgroundImage(filename) {
+	var bg = document.querySelector(".bg");
+	if (!bg) {
+		return;
+	}
+	if (filename) {
+		bg.style.setProperty("--wallpaper-bg", "url('textures/" + filename + "')");
+	} else {
+		bg.style.removeProperty("--wallpaper-bg");
+	}
+}
+
+function livelyPropertyListener(name, val) {
+	switch (name) {
+		case "bgImage":
+			setBackgroundImage(val);
+			break;
+		case "chartPrimaryColor":
+			chartColors.primary = val;
+			updateLiveChartColors();
+			break;
+		case "chartSecondaryColor":
+			chartColors.secondary = val;
+			updateLiveChartColors();
+			break;
+	}
 }
 
 //test

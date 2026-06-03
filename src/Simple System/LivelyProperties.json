@@ -1,0 +1,23 @@
+{
+  "bgImage": {
+    "type": "folderDropdown",
+    "value": "obsidian_black.png",
+    "text": "Background",
+    "filter": "*.jpg|*.jpeg|*.png|*.webp|*.gif",
+    "folder": "textures"
+  },
+  "labelCharts": {
+    "type": "label",
+    "value": "Charts"
+  },
+  "chartPrimaryColor": {
+    "type": "color",
+    "text": "Line color",
+    "value": "#c9cbcf"
+  },
+  "chartSecondaryColor": {
+    "type": "color",
+    "text": "Network upload",
+    "value": "#696969"
+  }
+}
